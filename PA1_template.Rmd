@@ -5,6 +5,9 @@ output:
     keep_md: true
 ---
 
+```{r, echo = TRUE}
+library(ggplot2)
+```
 
 ## Loading and preprocessing the data
 
@@ -13,6 +16,18 @@ activityDT<-read.csv(file = './activity.csv')
 ```
 ## What is mean total number of steps taken per day?
 
+```{r, echo = TRUE}
+stepsMean <- aggregate(steps ~ date, FUN = mean, data = activityDT, na.rm = TRUE)
+dateClean <- gsub("2012-","", stepsMean$date)
+g <- ggplot(stepsMean, aes(x = dateClean, y = steps))+ 
+            geom_histogram(stat = "identity", binwidth = 20) +
+            ggtitle("Average steps taken per day (2012)") +
+            theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+            xlab("Date") + ylab("Steps")
+
+print(g) 
+
+```
 
 
 ## What is the average daily activity pattern?

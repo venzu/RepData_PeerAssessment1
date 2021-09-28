@@ -17,23 +17,36 @@ activityDT<-read.csv(file = './activity.csv')
 ## What is mean total number of steps taken per day?
 
 ```{r, echo = TRUE}
-stepsMean <- aggregate(steps ~ date, FUN = mean, data = activityDT, na.rm = TRUE)
-dateClean <- gsub("2012-","", stepsMean$date)
-g <- ggplot(stepsMean, aes(x = dateClean, y = steps))+ 
-            geom_histogram(stat = "identity", binwidth = 20) +
-            ggtitle("Average steps taken per day (2012)") +
+stepsSum <- aggregate(steps ~ date, FUN = sum, data = activityDT, na.rm = TRUE)
+dateClean <- gsub("2012-","", stepsSum$date)
+g <- ggplot(stepsSum, aes(x = dateClean, y = steps))+ 
+            geom_histogram(stat = "identity") +
+            ggtitle("Total number of steps taken each day (2012)") +
             theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
             xlab("Date") + ylab("Steps")
 
 print(g) 
 
+median(stepsSum$steps, na.rm = T)
+mean(activityDT$steps, na.rm = T)
+
 ```
 
 
 ## What is the average daily activity pattern?
+```{r, echo = TRUE}
 
+stepsTime <- aggregate(steps ~ interval, FUN = mean, data = activityDT, na.rm = TRUE)
 
+p <- ggplot(stepsTime, aes(x=interval, y=steps)) +
+  geom_line( color="steelblue") + 
+  geom_point() +
+  xlab("") +
+  theme(axis.text.x=element_text(angle=60, hjust=1))
+print(p)
+  
 
+```
 ## Imputing missing values
 
 

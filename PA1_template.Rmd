@@ -7,6 +7,7 @@ output:
 
 ```{r, echo = TRUE}
 library(ggplot2)
+library(ggpubr)
 ```
 
 ## Loading and preprocessing the data
@@ -19,16 +20,16 @@ activityDT<-read.csv(file = './activity.csv')
 ```{r, echo = TRUE}
 stepsSum <- aggregate(steps ~ date, FUN = sum, data = activityDT, na.rm = TRUE)
 dateClean <- gsub("2012-","", stepsSum$date)
-g <- ggplot(stepsSum, aes(x = dateClean, y = steps))+ 
+g1 <- ggplot(stepsSum, aes(x = dateClean, y = steps))+ 
             geom_histogram(stat = "identity") +
             ggtitle("Total number of steps taken each day (2012)") +
             theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
             xlab("Date") + ylab("Steps")
 
-print(g) 
-
+print(g1) 
+stepsMean <- aggregate(steps ~ date, FUN = mean, data = activityDT, na.rm = TRUE)
 median(stepsSum$steps, na.rm = T)
-mean(activityDT$steps, na.rm = T)
+mean(stepsSum$steps, na.rm = T)
 
 ```
 
@@ -40,7 +41,7 @@ stepsTime <- aggregate(steps ~ interval, FUN = mean, data = activityDT, na.rm = 
 
 p <- ggplot(stepsTime, aes(x=interval, y=steps)) +
   geom_line( color="steelblue") +
-  ggtitle("Average number of steps taken, averaged across all days  (2012)") +
+  ggtitle("Average number of steps taken, averaged across all days") +
   xlab("Interval(minutes)") + ylab("Steps (averaged across all days)") +
   geom_point(data = stepsTime[which.max(stepsTime$steps), ], color="red", size=3)+
   geom_text(data = stepsTime[which.max(stepsTime$steps), ], aes(label = interval, hjust= -1,vjust=0)) +
@@ -55,19 +56,19 @@ print(p)
 sum(is.na(activityDT$steps))
 
 activityDT_nona <- activityDT
-activityDT_nona[is.na(activityDT_nona)] <- mean(activityDT$steps, na.rm = T)
+activityDT_nona$steps <- ifelse(is.na(activityDT_nona$steps),stepsTime$steps, activityDT_nona$steps)
 stepsSum_nona <- aggregate(steps ~ date, FUN = sum, data = activityDT_nona, na.rm = TRUE)
 dateClean <- gsub("2012-","", stepsSum_nona$date)
-g <- ggplot(stepsSum_nona, aes(x = dateClean, y = steps))+ 
+g2 <- ggplot(stepsSum_nona, aes(x = dateClean, y = steps))+ 
             geom_histogram(stat = "identity") +
             ggtitle("Total number of steps taken each day (2012)") +
             theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
             xlab("Date") + ylab("Steps")
 
-print(g) 
+print(g2) 
 
 median(stepsSum_nona$steps)
-mean(activityDT_nona$steps)
+mean(stepsSum_nona$steps)
 
 show(activityDT_nona)
 
@@ -75,3 +76,37 @@ show(activityDT_nona)
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r, echo = TRUE}
+activityDT_nona$date <- as.POSIXct(activityDT_nona$date, format = "%Y-%m-%d")
+activityDT_nona$weekday <- weekdays(activityDT_nona$date)
+
+weekendData <- subset(activityDT_nona, weekday == "Saturday" | weekday == "Sunday")
+weekdayData <- subset(activityDT_nona, weekday != "Saturday" & weekday != "Sunday")
+
+weekdayDataTime <- aggregate(steps ~ interval, FUN = mean, data = weekdayData)
+
+weekendDataTime <- aggregate(steps ~ interval, FUN = mean, data = weekendData)
+
+
+p1 <- ggplot(weekdayDataTime, aes(x=interval, y=steps)) +
+  geom_line( color="steelblue") +
+  ggtitle("Average number of steps taken, averaged across weekdays") +
+  xlab("Interval(min)") + ylab("Steps") +
+  geom_point(data = weekdayDataTime[which.max(weekdayDataTime$steps), ], color="red", size=3)+
+  geom_text(data = weekdayDataTime[which.max(weekdayDataTime$steps), ], aes(label = interval, hjust= -1,vjust=0.5)) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+p2 <- ggplot(weekendDataTime, aes(x=interval, y=steps)) +
+  geom_line( color="steelblue") +
+  ggtitle("Average number of steps taken, averaged across weekends") +
+  xlab("Interval(min)") + ylab("Steps") +
+  geom_point(data = weekendDataTime[which.max(weekendDataTime$steps), ], color="red", size=3)+
+  geom_text(data = weekendDataTime[which.max(weekendDataTime$steps), ], aes(label = interval, hjust= -1,vjust=0.5)) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+ggarrange(p1, p2, nrow = 2)
+
+```
+

@@ -39,16 +39,39 @@ mean(activityDT$steps, na.rm = T)
 stepsTime <- aggregate(steps ~ interval, FUN = mean, data = activityDT, na.rm = TRUE)
 
 p <- ggplot(stepsTime, aes(x=interval, y=steps)) +
-  geom_line( color="steelblue") + 
-  geom_point() +
-  xlab("") +
-  theme(axis.text.x=element_text(angle=60, hjust=1))
+  geom_line( color="steelblue") +
+  ggtitle("Average number of steps taken, averaged across all days  (2012)") +
+  xlab("Interval(minutes)") + ylab("Steps (averaged across all days)") +
+  geom_point(data = stepsTime[which.max(stepsTime$steps), ], color="red", size=3)+
+  geom_text(data = stepsTime[which.max(stepsTime$steps), ], aes(label = interval, hjust= -1,vjust=0)) +
+  theme(plot.title = element_text(hjust = 0.5))
 print(p)
   
 
 ```
 ## Imputing missing values
+```{r, echo = TRUE}
 
+sum(is.na(activityDT$steps))
+
+activityDT_nona <- activityDT
+activityDT_nona[is.na(activityDT_nona)] <- mean(activityDT$steps, na.rm = T)
+stepsSum_nona <- aggregate(steps ~ date, FUN = sum, data = activityDT_nona, na.rm = TRUE)
+dateClean <- gsub("2012-","", stepsSum_nona$date)
+g <- ggplot(stepsSum_nona, aes(x = dateClean, y = steps))+ 
+            geom_histogram(stat = "identity") +
+            ggtitle("Total number of steps taken each day (2012)") +
+            theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+            xlab("Date") + ylab("Steps")
+
+print(g) 
+
+median(stepsSum_nona$steps)
+mean(activityDT_nona$steps)
+
+show(activityDT_nona)
+
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
